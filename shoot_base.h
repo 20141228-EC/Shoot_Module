@@ -38,11 +38,13 @@
  * (#)Shoot_Tx_Cmd_t中的结构体分别是拨盘，摩擦轮的基础输出，以及视觉所需要的输出
  *
  * (#)Shoot_Inner_Flag_t中的标志位是本文件私有，不要在外部修改
- * -------------------------------------------------------------------------------/                                         
-
+ *
+ * (#)在外部文件中调用Shoot_Base_Work函数即可
+ * ------------------------------------------------------------------------------*/            
 
 /*--------------------------------外部头文件引用---------------------------------*/
 #include "stm32f4xx.h"
+#include "math.h"
 
 /*---------------------------宏定义只读区（禁止修改）----------------------------*/ 
 
@@ -53,15 +55,23 @@
 //根据拨盘电机角度数据类型来定义角度差数据类型
 #if  DIAL_ANGLE_DATA_TYPE == TYPE_UINT16 
 #define  DIAL_ANGLE_ERR_DATA_TYPE         int16_t
+//取绝对值
+#define  abs_cal(x)                 abs((DIAL_ANGLE_ERR_DATA_TYPE)(x))
+#define  err_abs_cal(x,y)           abs((DIAL_ANGLE_ERR_DATA_TYPE)(x) - (DIAL_ANGLE_ERR_DATA_TYPE)(y))
 
 #elif  DIAL_ANGLE_DATA_TYPE == TYPE_UINT32
 #define  DIAL_ANGLE_ERR_DATA_TYPE         int32_t
+#define  abs_cal(x)                 abs(DIAL_ANGLE_ERR_DATA_TYPE(x))
+#define  err_abs_cal(x,y)           abs(DIAL_ANGLE_ERR_DATA_TYPE(x) - DIAL_ANGLE_ERR_DATA_TYPE(y))
  
 #elif  DIAL_ANGLE_DATA_TYPE == TYPE_FLOAT
-#define  DIAL_ANGLE_DATA_TYPE             float
+#define  DIAL_ANGLE_ERR_DATA_TYPE         float
+#define  abs_cal(x)                 fabs(DIAL_ANGLE_ERR_DATA_TYPE(x))
+#define  err_abs_cal(x,y)           fabs(DIAL_ANGLE_ERR_DATA_TYPE(x) - DIAL_ANGLE_ERR_DATA_TYPE(y))
 
 #else
 #define  DIAL_ANGLE_ERR_DATA_TYPE         void
+#error   "DIAL_ANGLE_DATA_TYPE 未正确配置！"
 
 #endif
 
@@ -94,6 +104,12 @@
 #define  FRIC_CURRENT_DATA_TYPE           int16_t                  //摩擦轮电流数据类型
 
 
+#define  RELATIVE_ANGLE_STOP     (DIAL_IS_ANSOLUTE_ANGLE == 0 && err_abs_cal(shoot->cmd.dial_tx_cmd.angle_sum_target , shoot->misc.angle_sum) \
+			                      <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max && shoot->flag.reset_speed_flag == 1)  \
+
+#define  ABSOLUTE_ANGLE_STOP     (DIAL_IS_ANSOLUTE_ANGLE == 1 && abs_cal(Half_Cir_Handle(shoot->cmd.dial_tx_cmd.angle_target - shoot->info.rt_rx_info.dial_info.angle)) \
+		                         <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max)  \
+				
 																					 
 /*----------------------------------枚举定义-------------------------------------*/
 
@@ -383,7 +399,7 @@ extern Shoot_t shoot;
 
 static DIAL_ANGLE_ERR_DATA_TYPE Half_Cir_Handle(DIAL_ANGLE_ERR_DATA_TYPE err);
 static void Angle_Sum_Calculate(Shoot_t* shoot);
-static DIAL_ANGLE_DATA_TYPE Absolute_Angle_Wrap(DIAL_ANGLE_DATA_TYPE unwraped_angle)
+static DIAL_ANGLE_DATA_TYPE Absolute_Angle_Wrap(DIAL_ANGLE_DATA_TYPE unwraped_angle);
 static void Angle_Target_Switch(Shoot_t* shoot);
 static void Absolute_Angle_Target_Init(Shoot_t* shoot);
 static void Absolute_Angle_Target_Transfor(Shoot_t* shoot);
