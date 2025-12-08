@@ -44,39 +44,45 @@
 
 /*--------------------------------外部头文件引用---------------------------------*/
 #include "stm32f4xx.h"
+#include <stdint.h>
 #include "math.h"
 
-/*---------------------------宏定义只读区（禁止修改）----------------------------*/ 
+/*---------------------------宏定义只读区 1（禁止修改）----------------------------*/ 
 
-#define  TYPE_UINT16                          uint16_t
-#define  TYPE_UINT32                          uint32_t
-#define  TYPE_FLOAT                           float
+//为拨盘角度数据类型匹配数字
+#define  TYPE_UINT16                  0            //匹配 uint16_t
+#define  TYPE_UINT32                  1            //匹配uint32_t
+#define  TYPE_FLOAT                   2            //匹配 float
 
-//根据拨盘电机角度数据类型来定义角度差数据类型
-#if  DIAL_ANGLE_DATA_TYPE == TYPE_UINT16 
+#define  TYPE_ANGLE                   TYPE_FLOAT
+
+//根据拨盘电机角度对应数字来定义角度差数据类型和绝对值宏定义
+#if  TYPE_ANGLE == TYPE_UINT16 
 #define  DIAL_ANGLE_ERR_DATA_TYPE         int16_t
 //取绝对值
 #define  abs_cal(x)                 abs((DIAL_ANGLE_ERR_DATA_TYPE)(x))
 #define  err_abs_cal(x,y)           abs((DIAL_ANGLE_ERR_DATA_TYPE)(x) - (DIAL_ANGLE_ERR_DATA_TYPE)(y))
 
-#elif  DIAL_ANGLE_DATA_TYPE == TYPE_UINT32
+#elif  TYPE_ANGLE == TYPE_UINT32
 #define  DIAL_ANGLE_ERR_DATA_TYPE         int32_t
-#define  abs_cal(x)                 abs(DIAL_ANGLE_ERR_DATA_TYPE(x))
-#define  err_abs_cal(x,y)           abs(DIAL_ANGLE_ERR_DATA_TYPE(x) - DIAL_ANGLE_ERR_DATA_TYPE(y))
+#define  abs_cal(x)                 abs((DIAL_ANGLE_ERR_DATA_TYPE)(x))
+#define  err_abs_cal(x,y)           abs((DIAL_ANGLE_ERR_DATA_TYPE)(x )- (DIAL_ANGLE_ERR_DATA_TYPE)y)
  
-#elif  DIAL_ANGLE_DATA_TYPE == TYPE_FLOAT
+#elif  TYPE_ANGLE == TYPE_FLOAT
 #define  DIAL_ANGLE_ERR_DATA_TYPE         float
-#define  abs_cal(x)                 fabs(DIAL_ANGLE_ERR_DATA_TYPE(x))
-#define  err_abs_cal(x,y)           fabs(DIAL_ANGLE_ERR_DATA_TYPE(x) - DIAL_ANGLE_ERR_DATA_TYPE(y))
+#define  abs_cal(x)                 fabs((DIAL_ANGLE_ERR_DATA_TYPE)(x))
+#define  err_abs_cal(x,y)           fabs((DIAL_ANGLE_ERR_DATA_TYPE)x - (DIAL_ANGLE_ERR_DATA_TYPE)(y))
 
 #else
 #define  DIAL_ANGLE_ERR_DATA_TYPE         void
-#error   "DIAL_ANGLE_DATA_TYPE 未正确配置！"
+#error   " TYPE_ANGLE 未正确配置! "
 
 #endif
 
 
 /*--------------------------------宏定义可配置区---------------------------------*/
+
+#define  ANGLE_ERR_TYPE        			 float
 
 //拨盘
 #define  DIAL_MOTOR_TYPE                  M_2006                  //拨盘电机类型，从Dial_Motor_Type_e里面选
@@ -103,6 +109,8 @@
 #define  FRIC_SPEED_DATA_TYPE             int16_t                  //摩擦轮速度数据类型
 #define  FRIC_CURRENT_DATA_TYPE           int16_t                  //摩擦轮电流数据类型
 
+
+/*---------------------------宏定义只读区 2（禁止修改）----------------------------*/ 
 
 #define  RELATIVE_ANGLE_STOP     (DIAL_IS_ANSOLUTE_ANGLE == 0 && err_abs_cal(shoot->cmd.dial_tx_cmd.angle_sum_target , shoot->misc.angle_sum) \
 			                      <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max && shoot->flag.reset_speed_flag == 1)  \
