@@ -62,9 +62,20 @@ static void Angle_Sum_Calculate(Shoot_t* shoot)
 static DIAL_ANGLE_DATA_TYPE Absolute_Angle_Wrap(DIAL_ANGLE_DATA_TYPE unwraped_angle)
 {
 	DIAL_ANGLE_ERR_DATA_TYPE angle = unwraped_angle; 
-	if(DIAL_IS_ANSOLUTE_ANGLE)
+	if(DIAL_IS_ANSOLUTE_ANGLE&&TYPE_ANGLE==TYPE_FLOAT)
 	{
 		
+		if(angle > DIAL_ANGLE_MAX )
+		{
+			angle -= DIAL_ANGLE_MAX - DIAL_ANGLE_MIN;
+		}
+		else if(angle < -DIAL_ANGLE_MAX )
+		{
+			angle += DIAL_ANGLE_MAX - DIAL_ANGLE_MIN;
+		}
+	}
+	
+	else if(DIAL_IS_ANSOLUTE_ANGLE){
 		if(angle > DIAL_ANGLE_MAX - 1)
 		{
 			angle -= DIAL_ANGLE_MAX - DIAL_ANGLE_MIN;
@@ -73,8 +84,8 @@ static DIAL_ANGLE_DATA_TYPE Absolute_Angle_Wrap(DIAL_ANGLE_DATA_TYPE unwraped_an
 		{
 			angle += DIAL_ANGLE_MAX - DIAL_ANGLE_MIN;
 		}
-		
 	}
+		
 	else
 	{
 		angle = unwraped_angle;
@@ -197,8 +208,8 @@ static void Absolute_Angle_Target_Transfor(Shoot_t* shoot)
 			j = i + 1;
 		}			
 		
-		if(shoot->misc.absolute_angle_target[i] <= shoot->info.rt_rx_info.dial_info.angle 
-			&& shoot->misc.absolute_angle_target[j] > shoot->info.rt_rx_info.dial_info.angle)
+		if(abs_cal(Half_Cir_Handle(shoot->misc.absolute_angle_target[i]-shoot->info.rt_rx_info.dial_info.angle))
+			<shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max)
 		{
 				shoot->misc.behind_absolute_angle_target = shoot->misc.absolute_angle_target[i];
 				shoot->misc.front_absolute_angle_target = shoot->misc.absolute_angle_target[j];
@@ -431,9 +442,9 @@ uint8_t Dial_Block_Check(Dial_Rt_Rx_Info_t* rt_info,Shoot_Misc_t* misc,Dial_Bloc
 	{
 		
 		#if DIAL_IS_ANSOLUTE_ANGLE                         //绝对角度
-		  if(abs_cal(Half_Cir_Handle(cmd->angle_target, rt_info->angle)) > shoot.info.cfg_rx_info.base_cfg_info.stop_angle_err_max)
+		  if(abs_cal(Half_Cir_Handle(cmd->angle_target- rt_info->angle)) > shoot.info.cfg_rx_info.base_cfg_info.stop_angle_err_max)
 		  {
-		    cfg_info->angle_err_integral += cfg_info->integral_value * Absolute_Angle_Err_Calculate(cmd->angle_target, rt_info->angle, rt_info->current);
+		    cfg_info->angle_err_integral += cfg_info->integral_value * abs_cal(Half_Cir_Handle(cmd->angle_target- rt_info->angle));
 		    if(cfg_info->angle_err_integral >= cfg_info->angle_err_integral_max) 
 		    {
 		  	  flag = 1;
@@ -882,7 +893,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 
 		  break;
 	}
-	
+	last_elec_level_flag=shoot->info.rt_rx_info.flag_Info.elec_level_flag;
 }
 
 
