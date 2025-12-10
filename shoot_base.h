@@ -71,7 +71,7 @@
 #elif  TYPE_ANGLE == TYPE_FLOAT
 #define  DIAL_ANGLE_ERR_DATA_TYPE         float
 #define  abs_cal(x)                 fabs((DIAL_ANGLE_ERR_DATA_TYPE)(x))
-#define  err_abs_cal(x,y)           fabs((DIAL_ANGLE_ERR_DATA_TYPE)x - (DIAL_ANGLE_ERR_DATA_TYPE)(y))
+#define  err_abs_cal(x,y)           fabs((DIAL_ANGLE_ERR_DATA_TYPE)(x) - (DIAL_ANGLE_ERR_DATA_TYPE)(y))
 
 #else
 #define  DIAL_ANGLE_ERR_DATA_TYPE         void
@@ -112,10 +112,10 @@
 
 /*---------------------------宏定义只读区 2（禁止修改）----------------------------*/ 
 
-#define  RELATIVE_ANGLE_STOP     (DIAL_IS_ANSOLUTE_ANGLE == 0 && err_abs_cal(shoot->cmd.dial_tx_cmd.angle_sum_target , shoot->misc.angle_sum) \
+#define  RELATIVE_ANGLE_STOP     (DIAL_IS_ABSOLUTE_ANGLE == 0 && err_abs_cal(shoot->cmd.dial_tx_cmd.angle_sum_target , shoot->misc.angle_sum) \
 			                      <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max && shoot->flag.reset_speed_flag == 1)  \
 
-#define  ABSOLUTE_ANGLE_STOP     (DIAL_IS_ANSOLUTE_ANGLE == 1 && abs_cal(Half_Cir_Handle(shoot->cmd.dial_tx_cmd.angle_target - shoot->info.rt_rx_info.dial_info.angle)) \
+#define  ABSOLUTE_ANGLE_STOP     (DIAL_IS_ABSOLUTE_ANGLE == 1 && abs_cal(Half_Cir_Handle(shoot->cmd.dial_tx_cmd.angle_target - shoot->info.rt_rx_info.dial_info.angle)) \
 		                         <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max)  \
 				
 																					 
