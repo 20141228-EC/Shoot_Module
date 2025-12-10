@@ -105,7 +105,8 @@ static void Angle_Target_Switch(Shoot_t* shoot)
 	}
 	else if(shoot->cmd.dial_tx_cmd.work_state == RECOIL)
 	{
-		shoot->cmd.dial_tx_cmd.angle_target = shoot->misc.behind_absolute_angle_target;
+		shoot->cmd.dial_tx_cmd.angle_target = shoot->info.rt_rx_info.dial_info.angle
+											-shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
 	}
 	
 	#else
@@ -115,7 +116,7 @@ static void Angle_Target_Switch(Shoot_t* shoot)
 	}
 	else if(shoot->cmd.dial_tx_cmd.work_state == RECOIL)
 	{
-		shoot->cmd.dial_tx_cmd.angle_sum_target -= shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
+		shoot->cmd.dial_tx_cmd.angle_sum_target =shoot->misc.angle_sum- shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
 	}
 	#endif
 }
