@@ -89,7 +89,7 @@
 
 #define  DIAL_MEC_LIMIT                   1                        //拨盘有无机械限位，无为 -1，有为 1
 
-#define  DIAL_IS_ANSOLUTE_ANGLE           0                        //拨盘是否有绝对角度，有为 1，没有为 0
+#define  DIAL_IS_ABSOLUTE_ANGLE           1                        //拨盘是否有绝对角度，有为 1，没有为 0
 
 #define  DIAL_PUSHER_NUM                  8                        //拨盘拨爪数量
 
