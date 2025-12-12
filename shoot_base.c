@@ -494,6 +494,11 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 	 
 	switch (shoot->cmd.dial_tx_cmd.work_state)
 	{
+		if(shoot->info.rt_rx_info.flag_Info.is_mtr_offline_flag == 1)
+		{
+			shoot->cmd.dial_tx_cmd.current_target = 0;
+			return;
+		}
 		case SLEEP:                                              //睡眠模式更新，只卸力
 			work_time = 0;
 		  shoot->cmd.dial_tx_cmd.current_target = 0;
