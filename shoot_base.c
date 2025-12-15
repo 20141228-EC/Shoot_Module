@@ -76,11 +76,11 @@ static DIAL_ANGLE_DATA_TYPE Absolute_Angle_Wrap(DIAL_ANGLE_DATA_TYPE unwraped_an
 	}
 	
 	else if(DIAL_IS_ABSOLUTE_ANGLE){
-		if(angle > DIAL_ANGLE_MAX - 1)
+		if(angle > DIAL_ANGLE_MAX )
 		{
 			angle -= DIAL_ANGLE_MAX - DIAL_ANGLE_MIN;
 		}
-		else if(angle < -DIAL_ANGLE_MAX + 1)
+		else if(angle < -DIAL_ANGLE_MAX )
 		{
 			angle += DIAL_ANGLE_MAX - DIAL_ANGLE_MIN;
 		}
@@ -739,11 +739,10 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 	        break;
 				
 		    case DIAL_SPEED:
-			{
-				static int stop_flag=1;
+				
 			    if(shoot->info.rt_rx_info.flag_Info.elec_level_flag == 1)
 				  {
-						stop_flag=0;
+						
 						#if DIAL_IS_ABSOLUTE_ANGLE 
 						  //计算绝对角度当前角度超出后面角度环目标值的角度
 						  shoot->misc.beyond_angle =shoot->info.rt_rx_info.dial_info.angle - shoot->misc.behind_absolute_angle_target;
@@ -793,8 +792,6 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 					  shoot->cmd.vision_tx_cmd.is_ready_flag = 1;
 		        work_time = 0;
 						//速度环连发停止时有四种归位模式
-					  if(stop_flag==0)
-					  {
 						switch (shoot->info.cfg_rx_info.base_cfg_info.speed_stop_mode)
 						{
 						  case STAND:                //原地不动，此时目标值已经达到
@@ -838,11 +835,8 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 								}
 								break;
 						}
-						stop_flag=1;
-						}
 				  }
 			    break;
-			 }
 			 }
 				  
 		   break;	

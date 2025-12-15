@@ -93,7 +93,7 @@
 
 #define  DIAL_PUSHER_NUM                  8                        //拨盘拨爪数量
 
-#define  DIAL_ANGLE_MAX                   32768                    //拨盘机械角度数值最大值+1，如相对角度有8192(8191+1)，绝对角度有10.f
+#define  DIAL_ANGLE_MAX                   32768                    //拨盘机械角度数值最大值，如相对角度有8191，绝对角度有10.f
 #define  DIAL_ANGLE_MIN                   0                        //拨盘机械角度数值最小值，如 相对角度的0，绝对角度有的是-10.f
 
 #define  DIAL_ANGLE_DATA_TYPE             TYPE_UINT16              //拨盘角度数据类型
