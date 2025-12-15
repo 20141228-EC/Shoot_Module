@@ -684,10 +684,12 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				
 				   //实时更新拨弹进度
 					#if DIAL_IS_ABSOLUTE_ANGLE
-					shoot->cmd.vision_tx_cmd.reload_sche = (float)err_abs_cal(shoot->info.rt_rx_info.dial_info.angle , shoot->misc.behind_absolute_angle_target) 
+					shoot->cmd.vision_tx_cmd.reload_sche = (float)err_abs_cal(shoot->info.rt_rx_info.dial_info.angle\
+													-shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle, shoot->misc.behind_absolute_angle_target) 
 							                         / (float)shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;	
 					#else
-				  shoot->cmd.vision_tx_cmd.reload_sche = (float)err_abs_cal(shoot->cmd.dial_tx_cmd.angle_sum_target , shoot->misc.angle_sum)
+				  shoot->cmd.vision_tx_cmd.reload_sche = (float)err_abs_cal(shoot->cmd.dial_tx_cmd.angle_sum_target \
+											- shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle , shoot->misc.angle_sum)
 		                                   / (float)shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;	
 					#endif
 					
@@ -746,7 +748,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 						#if DIAL_IS_ABSOLUTE_ANGLE 
 						  //计算绝对角度当前角度超出后面角度环目标值的角度
 						  shoot->misc.beyond_angle =shoot->info.rt_rx_info.dial_info.angle - shoot->misc.behind_absolute_angle_target;
-						  shoot->cmd.vision_tx_cmd.reload_sche = (float)(shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle -shoot->misc.beyond_angle)
+						  shoot->cmd.vision_tx_cmd.reload_sche = (float)shoot->misc.beyond_angle
                                						/ (float)shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;	
 						#else
 						  //计算相对角度的当前角度超出后面角度环目标值的角度
@@ -758,7 +760,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				                                                         % shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
 					  #endif
 				      //速度环与角度环计算方式稍微不同，也可尝试用同一种方法
-				      shoot->cmd.vision_tx_cmd.reload_sche = (float)(shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle - shoot->misc.beyond_angle) 
+				      shoot->cmd.vision_tx_cmd.reload_sche = (float)( shoot->misc.beyond_angle) 
 		                                      / (float)shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;	
 						  //实时更新角度和目标值
 				      shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
