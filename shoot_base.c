@@ -735,7 +735,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 
 			    }
 				  //拨盘完成角度环，停下来才切换等待模式
-				  else if(ABSOLUTE_ANGLE_STOP || RELATIVE_ANGLE_STOP)
+				  else if((ABSOLUTE_ANGLE_STOP || RELATIVE_ANGLE_STOP) && shoot->mode == SINGLE_SHOT)
 				  {
 					  shoot->cmd.dial_tx_cmd.work_state = WAITING;
 					  shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
