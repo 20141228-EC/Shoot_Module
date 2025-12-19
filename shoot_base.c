@@ -781,7 +781,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				      
 						  //储存转换前当前位置后面的角度环目标值，用于后面弥补
 						  #if DIAL_IS_ABSOLUTE_ANGLE
-						    block_memory_angle = shoot->misc.behind_absolute_angle_target;
+						    block_memory_angle = shoot->misc.front_absolute_angle_target;
 						  #else
 						    block_memory_angle_sum = shoot->cmd.dial_tx_cmd.angle_sum_target - shoot->misc.beyond_angle;
 						  #endif
