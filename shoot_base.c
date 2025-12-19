@@ -600,7 +600,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 			}
 		  
 			//初始化完成，切换进等待模式
-			if(shoot->flag.init_flag == 0 &&(ABSOLUTE_ANGLE_STOP || RELATIVE_ANGLE_STOP))
+			if(shoot->flag.init_flag == 0 &&(ABSOLUTE_ANGLE_STOP || (RELATIVE_ANGLE_STOP&& shoot->flag.reset_speed_flag == 1)))
 			{                                
 				shoot->cmd.dial_tx_cmd.work_state = WAITING;
 				shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;

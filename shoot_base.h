@@ -113,7 +113,7 @@
 /*---------------------------宏定义只读区 2（禁止修改）----------------------------*/ 
 
 #define  RELATIVE_ANGLE_STOP     (DIAL_IS_ABSOLUTE_ANGLE == 0 && err_abs_cal(shoot->cmd.dial_tx_cmd.angle_sum_target , shoot->misc.angle_sum) \
-			                      <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max && shoot->flag.reset_speed_flag == 1)  \
+			                      <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max )  \
 
 #define  ABSOLUTE_ANGLE_STOP     (DIAL_IS_ABSOLUTE_ANGLE == 1 && abs_cal(Half_Cir_Handle(shoot->cmd.dial_tx_cmd.angle_target - shoot->info.rt_rx_info.dial_info.angle)) \
 		                         <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max)  \
@@ -256,7 +256,7 @@ typedef struct{
 	DIAL_ANGLE_DATA_TYPE          oneshot_angle;                 //拨一颗弹，拨盘电机转过的角度
 	DIAL_SPEED_DATA_TYPE          reload_speed;                  //补弹速度，较高速
   Dial_Mode_e                   repeat_shot_mode;              //拨盘连发转动模式，分速度环和角度环
-	uint8_t                       repeat_shot_period;            //拨盘角度环连发周期
+	uint16_t                       repeat_shot_period;            //拨盘角度环连发周期
   uint16_t                      state_work_time_max;           //拨盘角度环补弹退弹最大工作时间
 	Dial_Speed_Stop_Mode_e        speed_stop_mode;               //拨盘连发停止的归位模式
 	
