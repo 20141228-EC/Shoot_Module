@@ -38,46 +38,62 @@
  * (#)Shoot_Tx_Cmd_t中的结构体分别是拨盘，摩擦轮的基础输出，以及视觉所需要的输出
  *
  * (#)Shoot_Inner_Flag_t中的标志位是本文件私有，不要在外部修改
- * -------------------------------------------------------------------------------/                                         
-
+ *
+ * (#)在外部文件中调用Shoot_Base_Work函数即可
+ * ------------------------------------------------------------------------------*/            
 
 /*--------------------------------外部头文件引用---------------------------------*/
 #include "stm32f4xx.h"
+#include <stdint.h>
+#include "math.h"
 
-/*---------------------------宏定义只读区（禁止修改）----------------------------*/ 
+/*---------------------------宏定义只读区 1（禁止修改）----------------------------*/ 
 
-#define  TYPE_UINT16                          uint16_t
-#define  TYPE_UINT32                          uint32_t
-#define  TYPE_FLOAT                           float
+//为拨盘角度数据类型匹配数字
+#define  TYPE_UINT16                  0            //匹配 uint16_t
+#define  TYPE_UINT32                  1            //匹配uint32_t
+#define  TYPE_FLOAT                   2            //匹配 float
 
-//根据拨盘电机角度数据类型来定义角度差数据类型
-#if  DIAL_ANGLE_DATA_TYPE == TYPE_UINT16 
+#define  TYPE_ANGLE                   TYPE_FLOAT
+
+//根据拨盘电机角度对应数字来定义角度差数据类型和绝对值宏定义
+#if  TYPE_ANGLE == TYPE_UINT16 
 #define  DIAL_ANGLE_ERR_DATA_TYPE         int16_t
+//取绝对值
+#define  abs_cal(x)                 abs((DIAL_ANGLE_ERR_DATA_TYPE)(x))
+#define  err_abs_cal(x,y)           abs((DIAL_ANGLE_ERR_DATA_TYPE)(x) - (DIAL_ANGLE_ERR_DATA_TYPE)(y))
 
-#elif  DIAL_ANGLE_DATA_TYPE == TYPE_UINT32
+#elif  TYPE_ANGLE == TYPE_UINT32
 #define  DIAL_ANGLE_ERR_DATA_TYPE         int32_t
+#define  abs_cal(x)                 abs((DIAL_ANGLE_ERR_DATA_TYPE)(x))
+#define  err_abs_cal(x,y)           abs((DIAL_ANGLE_ERR_DATA_TYPE)(x )- (DIAL_ANGLE_ERR_DATA_TYPE)y)
  
-#elif  DIAL_ANGLE_DATA_TYPE == TYPE_FLOAT
-#define  DIAL_ANGLE_DATA_TYPE             float
+#elif  TYPE_ANGLE == TYPE_FLOAT
+#define  DIAL_ANGLE_ERR_DATA_TYPE         float
+#define  abs_cal(x)                 fabs((DIAL_ANGLE_ERR_DATA_TYPE)(x))
+#define  err_abs_cal(x,y)           fabs((DIAL_ANGLE_ERR_DATA_TYPE)(x) - (DIAL_ANGLE_ERR_DATA_TYPE)(y))
 
 #else
 #define  DIAL_ANGLE_ERR_DATA_TYPE         void
+#error   " TYPE_ANGLE 未正确配置! "
 
 #endif
 
 
 /*--------------------------------宏定义可配置区---------------------------------*/
 
+#define  ANGLE_ERR_TYPE        			 float
+
 //拨盘
 #define  DIAL_MOTOR_TYPE                  M_2006                  //拨盘电机类型，从Dial_Motor_Type_e里面选
 
 #define  DIAL_MEC_LIMIT                   1                        //拨盘有无机械限位，无为 -1，有为 1
 
-#define  DIAL_IS_ANSOLUTE_ANGLE           0                        //拨盘是否有绝对角度，有为 1，没有为 0
+#define  DIAL_IS_ABSOLUTE_ANGLE           1                        //拨盘是否有绝对角度，有为 1，没有为 0
 
 #define  DIAL_PUSHER_NUM                  8                        //拨盘拨爪数量
 
-#define  DIAL_ANGLE_MAX                   32768                    //拨盘机械角度数值最大值+1，如相对角度有8192(8191+1)，绝对角度有10.f
+#define  DIAL_ANGLE_MAX                   32768                    //拨盘机械角度数值最大值，如相对角度有8191，绝对角度有10.f
 #define  DIAL_ANGLE_MIN                   0                        //拨盘机械角度数值最小值，如 相对角度的0，绝对角度有的是-10.f
 
 #define  DIAL_ANGLE_DATA_TYPE             TYPE_UINT16              //拨盘角度数据类型
@@ -94,6 +110,14 @@
 #define  FRIC_CURRENT_DATA_TYPE           int16_t                  //摩擦轮电流数据类型
 
 
+/*---------------------------宏定义只读区 2（禁止修改）----------------------------*/ 
+
+#define  RELATIVE_ANGLE_STOP     (DIAL_IS_ABSOLUTE_ANGLE == 0 && err_abs_cal(shoot->cmd.dial_tx_cmd.angle_sum_target , shoot->misc.angle_sum) \
+			                      <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max )  \
+
+#define  ABSOLUTE_ANGLE_STOP     (DIAL_IS_ABSOLUTE_ANGLE == 1 && abs_cal(Half_Cir_Handle(shoot->cmd.dial_tx_cmd.angle_target - shoot->info.rt_rx_info.dial_info.angle)) \
+		                         <= shoot->info.cfg_rx_info.base_cfg_info.stop_angle_err_max)  \
+				
 																					 
 /*----------------------------------枚举定义-------------------------------------*/
 
@@ -232,7 +256,7 @@ typedef struct{
 	DIAL_ANGLE_DATA_TYPE          oneshot_angle;                 //拨一颗弹，拨盘电机转过的角度
 	DIAL_SPEED_DATA_TYPE          reload_speed;                  //补弹速度，较高速
   Dial_Mode_e                   repeat_shot_mode;              //拨盘连发转动模式，分速度环和角度环
-	uint8_t                       repeat_shot_period;            //拨盘角度环连发周期
+	uint16_t                       repeat_shot_period;            //拨盘角度环连发周期
   uint16_t                      state_work_time_max;           //拨盘角度环补弹退弹最大工作时间
 	Dial_Speed_Stop_Mode_e        speed_stop_mode;               //拨盘连发停止的归位模式
 	
@@ -383,7 +407,7 @@ extern Shoot_t shoot;
 
 static DIAL_ANGLE_ERR_DATA_TYPE Half_Cir_Handle(DIAL_ANGLE_ERR_DATA_TYPE err);
 static void Angle_Sum_Calculate(Shoot_t* shoot);
-static DIAL_ANGLE_DATA_TYPE Absolute_Angle_Wrap(DIAL_ANGLE_DATA_TYPE unwraped_angle)
+static DIAL_ANGLE_DATA_TYPE Absolute_Angle_Wrap(DIAL_ANGLE_DATA_TYPE unwraped_angle);
 static void Angle_Target_Switch(Shoot_t* shoot);
 static void Absolute_Angle_Target_Init(Shoot_t* shoot);
 static void Absolute_Angle_Target_Transfor(Shoot_t* shoot);
