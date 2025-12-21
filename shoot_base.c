@@ -322,7 +322,7 @@ void Shoot_Init(Shoot_t* shoot)
  */
 void Shoot_Work_State_Update(Shoot_t* shoot)
 {
-	if(shoot->info.rt_rx_info.flag_Info.is_sleep_flag == 1 &&shoot->flag.init_flag == 0)
+	if(shoot->info.rt_rx_info.flag_Info.is_sleep_flag == 1)
 	{
 		shoot->work_state = LOCKED;                                   //关保险状态更新
 		
@@ -495,6 +495,23 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 	static DIAL_ANGLE_DATA_TYPE         block_memory_angle;        //保存绝对角度前提下补弹堵转时拨盘后面的角度环目标值,可放misc
 	static DIAL_ANGLE_SUM_DATA_TYPE     block_memory_angle_sum;    //保存相对角度前提下补弹堵转时拨盘后面的角度环目标值,可放misc
 	 
+	if(shoot->info.rt_rx_info.flag_Info.is_sleep_flag == 0 && shoot->info.rt_rx_info.flag_Info .init_flag == 0 
+		                                                          && shoot->cmd.vision_tx_cmd.is_ready_flag == 1)
+			{
+		     shoot->cmd.dial_tx_cmd.work_state = RESETING;                 //拨盘进入复位状态
+		    //绝对角度前提下复位只用角度环到零点角度即可
+		    #if  DIAL_IS_ABSOLUTE_ANGLE
+		      shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;         
+			    shoot->cmd.dial_tx_cmd.angle_target = shoot->info.cfg_rx_info.base_cfg_info.reset_offist_angle;
+				
+		    //相对角度前提下需要先速度环找限位，再角度环调整最佳打弹角度
+		    #else
+			     shoot->cmd.dial_tx_cmd.mode = DIAL_SPEED;          
+					 //宏定义用于变换速度方向，方向取决于拨盘正转使弹丸触碰限位还是反转触碰，正转是碰到枪管限位	 
+		       shoot->cmd.dial_tx_cmd.speed_target = -DIAL_MEC_LIMIT * shoot->info.cfg_rx_info.base_cfg_info.reset_speed;  
+	      #endif
+			} 
+	 
 	switch (shoot->cmd.dial_tx_cmd.work_state)
 	{
 		if(shoot->info.rt_rx_info.flag_Info.is_mtr_offline_flag == 1)
@@ -518,23 +535,16 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 		  shoot->info.cfg_rx_info.angle_block_cfg_info.angle_err_integral = 0;
 		  shoot->info.cfg_rx_info.angle_block_cfg_info.angle_sum_err_integral = 0;
 		
-		  if(shoot->info.rt_rx_info.flag_Info.is_sleep_flag == 0 && shoot->flag.init_flag == 0 
+		  
+		  if(shoot->info.rt_rx_info.flag_Info.is_sleep_flag == 0 && shoot->info.rt_rx_info.flag_Info .init_flag == 1
 		                                                          && shoot->cmd.vision_tx_cmd.is_ready_flag == 1)
 			{
-		     shoot->cmd.dial_tx_cmd.work_state = RESETING;                 //拨盘进入复位状态
-		    //绝对角度前提下复位只用角度环到零点角度即可
-		    #if  DIAL_IS_ABSOLUTE_ANGLE
+			  shoot->cmd.dial_tx_cmd.work_state = WAITING;
 		      shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;         
-			    shoot->cmd.dial_tx_cmd.angle_target = shoot->info.cfg_rx_info.base_cfg_info.reset_offist_angle;
-				
-		    //相对角度前提下需要先速度环找限位，再角度环调整最佳打弹角度
-		    #else
-			     shoot->cmd.dial_tx_cmd.mode = DIAL_SPEED;          
-					 //宏定义用于变换速度方向，方向取决于拨盘正转使弹丸触碰限位还是反转触碰，正转是碰到枪管限位	 
-		       shoot->cmd.dial_tx_cmd.speed_target = -DIAL_MEC_LIMIT * shoot->info.cfg_rx_info.base_cfg_info.reset_speed;  
-	      #endif
-			} 
-			
+			  
+			  shoot->misc.angle_sum_start = shoot->misc.angle_sum;  
+			  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
+		  }
 		  break;
 		
 		case RESETING:                                            //复位状态更新
@@ -568,7 +578,8 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 			  {
 				  shoot->cmd.dial_tx_cmd.work_state = WAITING;
 		      shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
-				  shoot->flag.init_flag = 1;
+
+				  shoot->info.rt_rx_info.flag_Info .init_flag = 1;
 				  //记录拨盘的起始角度和，用于后续计算超出角度
 				  shoot->misc.angle_sum_start = shoot->misc.angle_sum;     
 				  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
@@ -584,7 +595,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				                  &shoot->info.cfg_rx_info.angle_block_cfg_info,&shoot->cmd.dial_tx_cmd) == 1)   
 			  {
 			  	shoot->cmd.dial_tx_cmd.work_state = WAITING;
-				  shoot->flag.init_flag = 1;
+				  shoot->info.rt_rx_info.flag_Info .init_flag = 1;
 				  //记录拨盘的起始角度和，用于后续计算相对角度超出角度
 				  shoot->misc.angle_sum_start = shoot->misc.angle_sum;     
 				  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
@@ -592,25 +603,15 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 			  else if(work_time >= shoot->info.cfg_rx_info.base_cfg_info.reset_angle_work_time_max)
 			  {
 				  shoot->cmd.dial_tx_cmd.work_state = WAITING;
-				  shoot->flag.init_flag = 1;
+				  shoot->info.rt_rx_info.flag_Info .init_flag = 1;
 				  //记录拨盘的起始角度和，用于后续计算相对角度超出角度
 				  shoot->misc.angle_sum_start = shoot->misc.angle_sum;     
 				  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
 			  }
 			}
 		  
-			//初始化完成，切换进等待模式
-			if(shoot->flag.init_flag == 0 &&(ABSOLUTE_ANGLE_STOP || (RELATIVE_ANGLE_STOP&& shoot->flag.reset_speed_flag == 1)))
-			{                                
-				shoot->cmd.dial_tx_cmd.work_state = WAITING;
-				shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
-				shoot->flag.init_flag = 1;
-				
-				//记录拨盘的起始角度和，用于后续计算相对角度超出角度
-				shoot->misc.angle_sum_start = shoot->misc.angle_sum;  				
-				shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
-   
-			}
+			
+//			}
 		
 		  break;
 			
