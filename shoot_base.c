@@ -525,10 +525,13 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 			{
 			  shoot->cmd.dial_tx_cmd.work_state = WAITING;
 		      shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;         
-			  
+			  shoot->cmd.vision_tx_cmd.is_ready_flag = 1;
 			  shoot->misc.angle_sum_start = shoot->misc.angle_sum;  
 			  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
 		  }
+		  
+		  shoot->cmd.vision_tx_cmd.is_ready_flag = 0;
+
 		  break;
 		
 		case RESETING:                                            //复位状态更新
@@ -564,6 +567,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 		      shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
 
 				  shoot->info.rt_rx_info.flag_Info .init_flag = 1;
+				  shoot->cmd.vision_tx_cmd.is_ready_flag = 1;
 				  //记录拨盘的起始角度和，用于后续计算超出角度
 				  shoot->misc.angle_sum_start = shoot->misc.angle_sum;     
 				  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
@@ -580,6 +584,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 			  {
 			  	shoot->cmd.dial_tx_cmd.work_state = WAITING;
 				  shoot->info.rt_rx_info.flag_Info .init_flag = 1;
+				  shoot->cmd.vision_tx_cmd.is_ready_flag = 1;
 				  //记录拨盘的起始角度和，用于后续计算相对角度超出角度
 				  shoot->misc.angle_sum_start = shoot->misc.angle_sum;     
 				  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
@@ -588,6 +593,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 			  {
 				  shoot->cmd.dial_tx_cmd.work_state = WAITING;
 				  shoot->info.rt_rx_info.flag_Info .init_flag = 1;
+				  shoot->cmd.vision_tx_cmd.is_ready_flag = 1;
 				  //记录拨盘的起始角度和，用于后续计算相对角度超出角度
 				  shoot->misc.angle_sum_start = shoot->misc.angle_sum;     
 				  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
@@ -598,6 +604,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				shoot->cmd.dial_tx_cmd.work_state = WAITING;
 				shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
 				shoot->info.rt_rx_info.flag_Info .init_flag = 1;
+				shoot->cmd.vision_tx_cmd.is_ready_flag = 1;
 				
 				//记录拨盘的起始角度和，用于后续计算相对角度超出角度
 				shoot->misc.angle_sum_start = shoot->misc.angle_sum;  				
@@ -613,11 +620,13 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 		case WAITING:                                            //等待模式更新，角度环
 		  shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
 		  work_time = 0;
+		   shoot->cmd.vision_tx_cmd.is_ready_flag = 1;
 		
 	    //只要INITING外部更新，可多次切换成复位模式
 		  if(shoot->work_state == INITING)                
 			{
 				shoot->cmd.dial_tx_cmd.work_state = RESETING;
+				shoot->cmd.vision_tx_cmd.is_ready_flag = 0;
 		    //绝对角度前提下复位只用角度环到零点角度即可
 		    #if  DIAL_IS_ABSOLUTE_ANGLE
 		      shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;         
