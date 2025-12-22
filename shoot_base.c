@@ -520,8 +520,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 		  shoot->info.cfg_rx_info.angle_block_cfg_info.angle_sum_err_integral = 0;
 		
 		  
-		  if(shoot->info.rt_rx_info.flag_Info.is_sleep_flag == 0 && shoot->info.rt_rx_info.flag_Info .init_flag == 1
-		                                                          && shoot->cmd.vision_tx_cmd.is_ready_flag == 1)
+		  if(shoot->info.rt_rx_info.flag_Info.is_sleep_flag == 0 && shoot->info.rt_rx_info.flag_Info .init_flag == 1)
 			{
 			  shoot->cmd.dial_tx_cmd.work_state = WAITING;
 		      shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;         
