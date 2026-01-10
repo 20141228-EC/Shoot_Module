@@ -240,7 +240,7 @@ void Shoot_Init(Shoot_t* shoot)
 	shoot->info.rt_rx_info.flag_Info.elec_level_flag = 0;
 	
 	shoot->flag.dial_block_flag = 0;
-	shoot->flag.init_flag = 0;
+	shoot->info.rt_rx_info.flag_Info .init_flag = 1;
 	shoot->flag.reset_speed_flag = 0;
 	
 	//  /*在此处配置电机结构体config，不得有漏配置
@@ -317,8 +317,7 @@ void Shoot_Init(Shoot_t* shoot)
 
 
 /**
- * @brief   更新拨盘工作状态
- * @note    内部使用 static 变量保存节拍计数，不可重入
+ * @brief   更新发射机构工作状态 
  */
 void Shoot_Work_State_Update(Shoot_t* shoot)
 {
