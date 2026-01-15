@@ -139,7 +139,7 @@ static void Absolute_Angle_Target_Init(Shoot_t* shoot)
 	}
 
 	else
-  {
+    {
 		pusher_num = DIAL_PUSHER_NUM;
 	}
 	//对偏置角度限幅
@@ -152,32 +152,54 @@ static void Absolute_Angle_Target_Init(Shoot_t* shoot)
 		shoot->info.cfg_rx_info.base_cfg_info.reset_offist_angle = -shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
 	}
 	
-	DIAL_ANGLE_DATA_TYPE abs_err[pusher_num];
 	DIAL_ANGLE_DATA_TYPE angle_target[pusher_num];
-	uint8_t err_min_cnt = 0;
+
 	
-	
-	for(i = 0;i < pusher_num ;i ++)          //确定角度环目标值集合,计算角度误差准备排序
+	for(i = 0;i < pusher_num ;i ++)          //确定角度环目标值集合
 	{
 		angle_target[i] = shoot->info.cfg_rx_info.base_cfg_info.reset_offist_angle + i * shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
-	    angle_target[i] = Absolute_Angle_Wrap(angle_target[i]);
+
+	    shoot->misc.absolute_angle_target[i] = Absolute_Angle_Wrap(angle_target[i]);
 		
-		abs_err[i] = err_abs_cal(angle_target[i] , shoot->info.rt_rx_info.dial_info.angle);
+
+	}
+}
+
+/**
+ * @brief	遍历找到最近归位绝对角度
+ * @note	仅在复位时使用
+ */
+static DIAL_ANGLE_DATA_TYPE Find_Nearest_Target_Angle(Shoot_t* shoot)
+{
+	uint8_t i;
+	uint32_t pusher_num;
+	uint8_t err_min_cnt = 0;
+	//对拨片数量限幅
+	if(DIAL_PUSHER_NUM <= 2)    //2片的话夹角很难快速供弹，负数片的话太抽象
+	{
+		pusher_num = 3;
+	}
+
+	else
+    {
+		pusher_num = DIAL_PUSHER_NUM;
+	}
+  
+	DIAL_ANGLE_DATA_TYPE abs_err[pusher_num];
+	
+	for(i = 0;i < pusher_num ;i ++)
+	{
+		abs_err[i] = err_abs_cal( shoot->misc.absolute_angle_target[i]
+		                          , shoot->info.rt_rx_info.dial_info.angle);
 		if(abs_err[i] <= abs_err[err_min_cnt])
 		{
 			err_min_cnt = i;
 		}
 	}
-	for(i = 0;i < pusher_num;i ++)           //角度目标值开始排序
-	{
-		uint8_t j = err_min_cnt + i;
-		if(j > pusher_num)
-		{
-			j -= pusher_num;
-		}
-		shoot->misc.absolute_angle_target[i] = angle_target[j]; 
-	}
+	return shoot->misc.absolute_angle_target[err_min_cnt];
 }
+	
+
 
 /**
  * @brief   绝对角度当前角度的前后角度环目标值转换
@@ -336,7 +358,7 @@ void Shoot_Work_State_Update(Shoot_t* shoot)
 	else if(shoot->info.rt_rx_info.flag_Info.is_sleep_flag == 0 && shoot->info.rt_rx_info.flag_Info .init_flag == 0 
 		                                                          && shoot->cmd.vision_tx_cmd.is_ready_flag == 1)  //可以立即打弹情况下才能初始化
 	{
-		shoot->work_state = INITING;                                  //初始化状态更新
+		shoot->work_state = INITING;                                  //初始化状态更新,init置零进入，后续进入复位
 		shoot->cmd.fric_tx_cmd.work_state = RUN;
 		
 		
@@ -631,8 +653,9 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				
 		    //绝对角度前提下复位只用角度环到最近目标角度即可
 		    #if  DIAL_IS_ABSOLUTE_ANGLE
+				reset_target_angle = Find_Nearest_Target_Angle(shoot);
 		        shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;         
-			    shoot->cmd.dial_tx_cmd.angle_target = shoot->info.cfg_rx_info.base_cfg_info.reset_offist_angle;
+			    shoot->cmd.dial_tx_cmd.angle_target = reset_target_angle;
 				
 		    //相对角度前提下需要先速度环找限位，再角度环调整最佳打弹角度
 		    #else
