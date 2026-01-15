@@ -550,6 +550,8 @@ void Dial_Work_State_Update(Shoot_t* shoot)
   
 			  shoot->misc.angle_sum_start = shoot->misc.angle_sum;  
 			  shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum;
+			 
+			  shoot->cmd.dial_tx_cmd.angle_target = shoot->info.rt_rx_info.dial_info.angle;
 		  }
 		  
 		  shoot->cmd.vision_tx_cmd.is_ready_flag = 0;
@@ -643,9 +645,14 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 		case WAITING:                                            //等待模式更新，角度环
 		  shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
 		  work_time = 0;
+		
+		   if(shoot->info.rt_rx_info.flag_Info.run_limit_flag == 0)
 		  shoot->cmd.vision_tx_cmd.is_ready_flag = 1;
+		   else
+			    shoot->cmd.vision_tx_cmd.is_ready_flag = 0;
 		
 	    //只要INITING外部更新，可多次切换成复位模式
+		   DIAL_ANGLE_DATA_TYPE  reset_target_angle;				//复位绝对值目标角
 		  if(shoot->work_state == INITING)                
 			{
 				shoot->cmd.dial_tx_cmd.work_state = RESETING;
@@ -666,10 +673,10 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 	      #endif
 			}
 			
+			
 			//需要同时符合没有电机掉线，可以立即开火，开火操作和当前开火模式对应的开火操作相同，才能补弹
-			if(shoot->info.rt_rx_info.flag_Info.is_mtr_offline_flag == 0)
-			{
-				if(shoot->cmd.vision_tx_cmd.is_ready_flag == 1)        //可以立即开火
+			if(shoot->info.rt_rx_info.flag_Info.is_mtr_offline_flag == 0
+				&&shoot->cmd.vision_tx_cmd.is_ready_flag == 1)
 			  {
 				//单发
 				  if(shoot->mode == SINGLE_SHOT && last_elec_level_flag == 0 && shoot->info.rt_rx_info.flag_Info.elec_level_flag == 1)  //上升沿触发 
@@ -696,9 +703,8 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 						shoot->cmd.dial_tx_cmd.work_state = RELOAD;
 				  	  	shoot->cmd.dial_tx_cmd.speed_target = shoot->info.cfg_rx_info.base_cfg_info.reload_speed;
 					    shoot->cmd.dial_tx_cmd.mode = DIAL_SPEED;
-				    }
-		  	  }
-			  }
+		  	        }
+			    }
 			}
 			else
       {
@@ -730,7 +736,8 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				    {
 					    work_time = 0;
             }
-					else if(shoot->info.rt_rx_info.flag_Info.elec_level_flag == 0)       //连发开火停止
+					if(shoot->info.rt_rx_info.flag_Info.elec_level_flag == 0 
+						|| shoot->info.rt_rx_info.flag_Info.run_limit_flag == 1)       //连发开火停止
 				  {
 					  shoot->cmd.dial_tx_cmd.work_state = WAITING;
 					  shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
@@ -799,7 +806,8 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				
 		    case DIAL_SPEED:
 				
-			    if(shoot->info.rt_rx_info.flag_Info.elec_level_flag == 1)
+			    if(shoot->info.rt_rx_info.flag_Info.elec_level_flag == 1 &&
+					shoot->info.rt_rx_info.flag_Info.run_limit_flag == 0)
 				  {
 						
 						#if DIAL_IS_ABSOLUTE_ANGLE 
@@ -844,7 +852,8 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				      work_time = 0;
 			      }
 				  }
-				  else if(shoot->info.rt_rx_info.flag_Info.elec_level_flag == 0)       //连发开火停止
+				  else if(shoot->info.rt_rx_info.flag_Info.elec_level_flag == 0 
+					  || shoot->info.rt_rx_info.flag_Info.run_limit_flag == 1)       //连发开火停止
 				  {
 					  shoot->cmd.dial_tx_cmd.work_state = WAITING;
 					  shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
@@ -875,7 +884,6 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 							  break;
 							
 							case ROUNDING_UP:          //四舍五入，距离哪边近就去哪边
-								
 								if(2 * shoot->misc.beyond_angle > shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle)
 								{
 									#if DIAL_IS_ABSOLUTE_ANGLE
