@@ -694,7 +694,6 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 						  shoot->cmd.dial_tx_cmd.work_state = RELOAD;
 				  	      Angle_Target_Switch(shoot);
 				  	      shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
-						  shoot->cmd.vision_tx_cmd.is_ready_flag = 0;      //此时不能立即开火，为了防止补弹未完成时，或补弹完成但周期未到时，有开火操作而导致再次补弹
 					
 					    last_tick = HAL_GetTick();
 				    }
