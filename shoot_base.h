@@ -223,6 +223,7 @@ typedef struct{
 	uint8_t fire_mode_flag;                 //开火模式标志位，单发为 0，连发为 1 
 	uint8_t elec_level_flag;                //电平标志位，高电平为 1，低电平为 0
     uint8_t init_flag;                    //初始化标志位，置0时进入复位，复位完成后置1，用于外部手动复位
+	uint8_t run_limit_flag;
 }Flag_Rt_Rx_Info_t;
 
 /**
