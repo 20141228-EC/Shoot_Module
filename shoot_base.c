@@ -391,7 +391,7 @@ void Shoot_Mode_Update(Shoot_t* shoot)
 		if(last_shoot_mode == REPEAT_SHOT && last_dial_mode == DIAL_SPEED && shoot->info.cfg_rx_info.base_cfg_info.speed_stop_mode == STAND)
 		{
 			#if DIAL_IS_ABSOLUTE_ANGLE
-			  shoot->cmd.dial_tx_cmd.angle_target = shoot->misc.behind_absolute_angle_target;
+			  shoot->cmd.dial_tx_cmd.angle_target = shoot->misc.front_absolute_angle_target;
 			#else
 			  shoot->cmd.dial_tx_cmd.angle_sum_target += (shoot->info.cfg_rx_info.base_cfg_info .oneshot_angle - shoot->misc.beyond_angle);
 			#endif
@@ -412,7 +412,7 @@ void Shoot_Mode_Update(Shoot_t* shoot)
 				#if DIAL_IS_ABSOLUTE_ANGLE
 			    shoot->cmd.dial_tx_cmd.angle_target = shoot->misc.front_absolute_angle_target;
 			  	#else
-			    shoot->cmd.dial_tx_cmd.angle_sum_target -= shoot->misc.beyond_angle;
+			    shoot->cmd.dial_tx_cmd.angle_sum_target += (shoot->info.cfg_rx_info.base_cfg_info .oneshot_angle - shoot->misc.beyond_angle);
 			  	#endif
 			}
 		}
@@ -642,6 +642,7 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 			}
 		  break;
 			
+			
 		case WAITING:                                            //等待模式更新，角度环
 		  shoot->cmd.dial_tx_cmd.mode = DIAL_ANGLE;
 		  work_time = 0;
@@ -652,9 +653,10 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 			    shoot->cmd.vision_tx_cmd.is_ready_flag = 0;
 		
 	    //只要INITING外部更新，可多次切换成复位模式
-		   DIAL_ANGLE_DATA_TYPE  reset_target_angle;				//复位绝对值目标角
 		  if(shoot->work_state == INITING)                
 			{
+			    DIAL_ANGLE_DATA_TYPE  reset_target_angle;				//复位绝对值目标角
+				
 				shoot->cmd.dial_tx_cmd.work_state = RESETING;
 				shoot->cmd.vision_tx_cmd.is_ready_flag = 0;
 				
