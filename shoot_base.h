@@ -219,10 +219,11 @@ typedef struct{
  */
 typedef struct{
 	uint8_t is_sleep_flag;                  //发射机构睡眠/卸力标志位，开控置0，关控置1，若置1后需重新复位，机器人阵亡时无需复位不应置1  
-	uint8_t is_mtr_offline_flag; 						//发射机构是否有相关电机掉线，1为掉线，0为在线，掉线了不响应开火操作 && is_ready_flag=0，但不一定进入sleep状态
+	uint8_t is_mtr_offline_flag; 			//发射机构是否有相关电机掉线，1为掉线，0为在线，掉线了不响应开火操作 && is_ready_flag=0，但不一定进入sleep状态
 	uint8_t fire_mode_flag;                 //开火模式标志位，单发为 0，连发为 1 
 	uint8_t elec_level_flag;                //电平标志位，高电平为 1，低电平为 0
-    uint8_t init_flag;                    //初始化标志位，置0时进入复位，复位完成后置1，用于外部手动复位
+    uint8_t init_flag;                      //初始化标志位，置0时进入复位，复位完成后置1，用于外部手动复位
+	uint8_t run_limit_flag;					//运行限制标志位，在功率限制，摩擦轮堵转等情况下，在不上锁发射机构的前提下停止运行
 }Flag_Rt_Rx_Info_t;
 
 /**
@@ -335,7 +336,7 @@ typedef struct{
  */
 typedef struct{
 	float                         reload_sche;              //拨弹进度
-	uint8_t                       is_ready_flag;            //能否立即打弹标志位，不能为 0，能为 1，受功率限制等的影响
+	uint8_t                       is_ready_flag;            //能否立即打弹标志位，不能为 0，能为 1,提供给视觉判断发弹时机
 }Vision_Tx_Cmd_t;
 
 
