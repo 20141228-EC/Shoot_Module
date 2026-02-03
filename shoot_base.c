@@ -28,13 +28,19 @@ static DIAL_ANGLE_ERR_DATA_TYPE Half_Cir_Handle(DIAL_ANGLE_ERR_DATA_TYPE err)
 
 /**
  * @brief   计算角度和
- * @note    用于相对角度计算，和绝对角度分析
+ * @note    用于相对角度和计算,可选传入或使用内部计算
  */
 static void Angle_Sum_Calculate(Shoot_t* shoot)
 {	
 	static DIAL_ANGLE_DATA_TYPE  last_angle;
 	static DIAL_ANGLE_DATA_TYPE  now_angle;
 	DIAL_ANGLE_SUM_DATA_TYPE  angle_err;
+	
+	#if DIAL_ANGLE_SUM_FROM_OUTTER 
+	
+	shoot->misc.angle_sum = shoot->info.rt_rx_info.dial_info.angle_sum;
+	
+	#else
 	
 	now_angle = shoot->info.rt_rx_info.dial_info.angle;
 	
@@ -52,6 +58,8 @@ static void Angle_Sum_Calculate(Shoot_t* shoot)
 	
   	
 	last_angle = now_angle;
+	
+	#endif
 }                                   
 	
 
