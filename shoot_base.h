@@ -89,20 +89,20 @@
 
 #define  DIAL_MEC_LIMIT                   1                        //拨盘有无机械限位，无为 -1，有为 1
 
-#define  DIAL_IS_ABSOLUTE_ANGLE           1                        //拨盘是否有绝对角度，有为 1，没有为 0
+#define  DIAL_IS_ABSOLUTE_ANGLE           0                        //拨盘是否有绝对角度，有为 1，没有为 0
 
 #define  DIAL_PUSHER_NUM                  8                        //拨盘拨爪数量
 
 #define  DIAL_ANGLE_MAX                   32768                    //拨盘机械角度数值最大值，如相对角度有8191，绝对角度有10.f
 #define  DIAL_ANGLE_MIN                   0                        //拨盘机械角度数值最小值，如 相对角度的0，绝对角度有的是-10.f
 
-#define  DIAL_ANGLE_DATA_TYPE             int16_t              //拨盘角度数据类型
+#define  DIAL_ANGLE_DATA_TYPE             int16_t              		//拨盘角度数据类型
 #define  DIAL_SPEED_DATA_TYPE             int16_t                  //拨盘速度数据类型
 #define  DIAL_CURRENT_DATA_TYPE           int16_t                  //拨盘电流数据类型
 
-#define  DIAL_ANGLE_SUM_DATA_TYPE         int32_t                  //拨盘角度和数据类型
+#define  DIAL_ANGLE_SUM_DATA_TYPE         int32_t                  //拨盘角度和数据类型,建议选择数据范围较大类型
 
-
+#define  DIAL_ANGLE_SUM_FROM_OUTTER		  	0                      //角度和外部传入 1.内部计算 0，拨盘与代码不在一块板时可使用
 //摩擦轮
 #define  FRIC_NUM                         3                        //摩擦轮数量，分六摩 6，三摩 3，二摩 2
 
@@ -208,8 +208,8 @@ typedef enum{
 typedef struct{
 	DIAL_ANGLE_DATA_TYPE                 angle;           //角度
 	DIAL_SPEED_DATA_TYPE                 speed;           //速度
-  DIAL_CURRENT_DATA_TYPE               current;         //电流
-
+  	DIAL_CURRENT_DATA_TYPE               current;         //电流
+	DIAL_ANGLE_SUM_DATA_TYPE 			 angle_sum;		  //角度和
 }Dial_Rt_Rx_Info_t;
 
 
@@ -254,7 +254,7 @@ typedef struct{
 	uint16_t                      reset_angle_work_time_max;     //角度环复位最大工作时间
 	
 	//补弹配置
-	DIAL_ANGLE_DATA_TYPE          oneshot_angle;                 //拨一颗弹，拨盘电机转过的角度
+	DIAL_ANGLE_SUM_DATA_TYPE          oneshot_angle;                 //拨一颗弹，拨盘电机转过的角度
 	DIAL_SPEED_DATA_TYPE          reload_speed;                  //补弹速度，较高速
   Dial_Mode_e                   repeat_shot_mode;              //拨盘连发转动模式，分速度环和角度环
 	uint16_t                       repeat_shot_period;            //拨盘角度环连发周期
