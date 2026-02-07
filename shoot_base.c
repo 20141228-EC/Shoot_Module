@@ -578,13 +578,9 @@ void Dial_Work_State_Update(Shoot_t* shoot)
 				                  &shoot->info.cfg_rx_info.reset_speed_block_cfg_info,&shoot->cmd.dial_tx_cmd) == 1)   //拨盘堵转返回 1
 			  {
 			  	//对拨盘回转调整角度限幅，防止过大
-				  if(shoot->info.cfg_rx_info.base_cfg_info.reset_adjust_angle > shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle)
+				  if(abs_cal(shoot->info.cfg_rx_info.base_cfg_info.reset_adjust_angle) > abs_cal(shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle))
 				  {
-				   	shoot->info.cfg_rx_info.base_cfg_info.reset_adjust_angle = shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
-				  }
-				  else if(shoot->info.cfg_rx_info.base_cfg_info.reset_adjust_angle < -shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle)
-				  {
-				   	shoot->info.cfg_rx_info.base_cfg_info.reset_adjust_angle = -shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
+					shoot->info.cfg_rx_info.base_cfg_info.reset_adjust_angle = shoot->info.cfg_rx_info.base_cfg_info.oneshot_angle;
 				  }
 				
 		          shoot->cmd.dial_tx_cmd.angle_sum_target = shoot->misc.angle_sum+DIAL_MEC_LIMIT * shoot->info.cfg_rx_info.base_cfg_info.reset_adjust_angle;
